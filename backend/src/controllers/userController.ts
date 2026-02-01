@@ -16,7 +16,7 @@ export async function getUsers(
     }
 
     const users = await User.find({ _id: { $ne: currentUserId } })
-      .select("name email avatar")
+      .select("name avatar")
       .limit(50);
 
     res.status(200).json(users);

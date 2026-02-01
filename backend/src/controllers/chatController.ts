@@ -26,7 +26,7 @@ export async function getChats(
 
       return {
         _id: chat._id,
-        participant: otherParticipant,
+        participant: otherParticipant ?? null,
         lastMessage: chat.lastMessage,
         lastMessageAt: chat.lastMessageAt,
         createdAt: chat.createdAt,
@@ -36,7 +36,7 @@ export async function getChats(
     res.json(formattedChats);
   } catch (error) {
     res.status(500);
-    next();
+    next(error);
   }
 }
 
@@ -48,6 +48,14 @@ export async function getOrCreateChat(
   try {
     const userId = req.userId;
     const { participantId } = req.params;
+
+    if (!participantId) {
+      return res.status(400).json({ message: "Participant ID is required" });
+    }
+
+    if (userId === participantId) {
+      return res.status(400).json({ message: "Cannot create chat with yourself!" });
+    }
 
     // Check if chat already exists
     let chat = await Chat.findOne({
@@ -75,6 +83,6 @@ export async function getOrCreateChat(
     });
   } catch (error) {
     res.status(500);
-    next();
+    next(error);
   }
 }
