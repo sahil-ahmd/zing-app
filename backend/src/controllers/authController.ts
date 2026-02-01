@@ -39,8 +39,8 @@ export async function authCallback(req: Request, res: Response, next: NextFuncti
         name: (clerkUser.firstName
           ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
           : clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0]) || "Anonymous User", // Fallback string
-        email: clerkUser.emailAddresses[0]?.emailAddress || "", // Fallback string
-        avatar: clerkUser.imageUrl || "" // Fallback string
+        email: clerkUser.emailAddresses[0]?.emailAddress || "User", // Fallback string
+        avatar: clerkUser.imageUrl
       });
     }
 
