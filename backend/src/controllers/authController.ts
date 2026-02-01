@@ -16,7 +16,7 @@ export async function getMe(req: AuthRequest, res: Response, next: NextFunction)
     res.status(200).json(user);
   } catch (error) {
     res.status(500);
-    next();
+    next(error);
   }
 }
 
@@ -38,7 +38,7 @@ export async function authCallback(req: Request, res: Response, next: NextFuncti
         clerkId,
         name: (clerkUser.firstName
           ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-          : clerkUser.emailAddresses[0]?.emailAddress.split("@")[0]) || "Anonymous User", // Fallback string
+          : clerkUser.emailAddresses[0]?.emailAddress?.split("@")[0]) || "Anonymous User", // Fallback string
         email: clerkUser.emailAddresses[0]?.emailAddress || "", // Fallback string
         avatar: clerkUser.imageUrl || "" // Fallback string
       });
