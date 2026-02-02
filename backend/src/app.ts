@@ -1,6 +1,7 @@
 import express from "express";
 import { clerkMiddleware } from "@clerk/express";
 import "dotenv/config";
+import path from "path";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoute from "./routes/authRoute.js";
@@ -26,5 +27,14 @@ app.use("api/messages", messageRoute);
 
 // Error handlers must come after all the routes and other middlewares so they can catch errors passed with next(err) or thrown inside async handlers.
 app.use(errorHandler);
+
+// serve FE in production
+if (process.env.NODE_ENV === "production") {
+    app.use(express.static(path.join(__dirname, "../../web/dist")));
+
+    app.get("/{*any}", (_, res) => {
+        res.sendFile(path.join(__dirname, "../../web/dist/index.html"));
+    });
+}
 
 export default app;
