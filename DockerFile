@@ -1,0 +1,45 @@
+# 1. Use the official Node.js image
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# --- Build Web Frontend ---
+WORKDIR /app/web
+# Copy package files first for better caching
+COPY web/package.json web/package-lock.json* ./
+RUN npm install
+COPY web/ ./
+
+# Set build arguments for Clerk and API
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+RUN npm run build
+
+# --- Setup Backend ---
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json* ./
+RUN npm install
+COPY backend/ ./
+
+# Since you are using TypeScript, build the backend
+RUN npm run build
+
+# --- Final Runtime Image ---
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy built files from the builder stage
+COPY --from=builder /app/backend /app/backend
+COPY --from=builder /app/web/dist /app/web/dist
+
+WORKDIR /app/backend
+
+EXPOSE 3000
+ENV PORT=3000
+ENV NODE_ENV=production
+
+# Use node to start the compiled javascript
+CMD ["npm", "start"]
