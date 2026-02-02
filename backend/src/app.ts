@@ -2,18 +2,12 @@ import express from "express";
 import { clerkMiddleware } from "@clerk/express";
 import "dotenv/config";
 import path from "path";
-import { fileURLToPath } from "url";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoute from "./routes/authRoute.js";
 import userRoute from "./routes/userRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import chatRoute from "./routes/chatRoute.js";
-
-// --- ESM __dirname Fix ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// -------------------------
 
 const app = express();
 
@@ -36,14 +30,13 @@ app.use(errorHandler);
 
 // serve FE in production
 if (process.env.NODE_ENV === "production") {
-    // process.cwd() is often safer on Render as it points to /opt/render/project/src
     const rootDir = process.cwd();
     const frontendPath = path.join(rootDir, "web", "dist");
 
     app.use(express.static(frontendPath));
 
-    // Fixed the wildcard route syntax for Express
-    app.get("(.*)", (_, res) => {
+    // Express 5 "Catch-all" syntax using a named parameter
+    app.get("/{*any}", (_, res) => {
         res.sendFile(path.join(frontendPath, "index.html"));
     });
 }
