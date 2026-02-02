@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === "production") {
     app.use(express.static(frontendPath));
 
     // Express 5 "Catch-all" syntax using a named parameter
-    app.get("/{*any}", (_, res) => {
+    app.get("*path", (_, res) => {
         res.sendFile(path.join(frontendPath, "index.html"));
     });
 }
