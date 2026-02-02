@@ -38,7 +38,7 @@ app.use(errorHandler);
 if (process.env.NODE_ENV === "production") {
     // process.cwd() is often safer on Render as it points to /opt/render/project/src
     const rootDir = process.cwd();
-    const frontendPath = path.join(rootDir, "web", "dist");
+    const frontendPath = path.join(rootDir, "..", "web", "dist");
 
     app.use(express.static(frontendPath));
 
