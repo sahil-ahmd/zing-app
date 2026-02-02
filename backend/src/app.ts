@@ -43,7 +43,7 @@ if (process.env.NODE_ENV === "production") {
     app.use(express.static(frontendPath));
 
     // Fixed the wildcard route syntax for Express
-    app.get("*", (_, res) => {
+    app.get("(.*)", (_, res) => {
         res.sendFile(path.join(frontendPath, "index.html"));
     });
 }
