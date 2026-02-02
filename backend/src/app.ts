@@ -2,12 +2,18 @@ import express from "express";
 import { clerkMiddleware } from "@clerk/express";
 import "dotenv/config";
 import path from "path";
+import { fileURLToPath } from "url";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 import authRoute from "./routes/authRoute.js";
 import userRoute from "./routes/userRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import chatRoute from "./routes/chatRoute.js";
+
+// --- ESM __dirname Fix ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// -------------------------
 
 const app = express();
 
@@ -23,17 +29,22 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/chats", chatRoute);
-app.use("api/messages", messageRoute);
+app.use("/api/messages", messageRoute);
 
 // Error handlers must come after all the routes and other middlewares so they can catch errors passed with next(err) or thrown inside async handlers.
 app.use(errorHandler);
 
 // serve FE in production
 if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../../web/dist")));
+    // process.cwd() is often safer on Render as it points to /opt/render/project/src
+    const rootDir = process.cwd();
+    const frontendPath = path.join(rootDir, "web", "dist");
 
-    app.get("/{*any}", (_, res) => {
-        res.sendFile(path.join(__dirname, "../../web/dist/index.html"));
+    app.use(express.static(frontendPath));
+
+    // Fixed the wildcard route syntax for Express
+    app.get("*", (_, res) => {
+        res.sendFile(path.join(frontendPath, "index.html"));
     });
 }
 
