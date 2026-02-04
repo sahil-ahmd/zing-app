@@ -1,8 +1,4 @@
 import { Redirect, Tabs } from "expo-router";
-<<<<<<< Updated upstream
-=======
-import { Ionicons } from "@expo/vector-icons";
->>>>>>> Stashed changes
 import TabBar from "@/components/TabBar";
 import { useAuth } from "@clerk/clerk-expo";
 
@@ -10,11 +6,7 @@ const TabsLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
 
   if (!isLoaded) return null;
-<<<<<<< Updated upstream
   if (!isSignedIn) return <Redirect href={"/(auth)"} />;
-=======
-  if (!isSignedIn) return <Redirect href={"/(tabs)"} />;
->>>>>>> Stashed changes
   
   return (
     <Tabs
@@ -46,11 +38,7 @@ const TabsLayout = () => {
         options={{
           title: "Search",
         }}
-<<<<<<< Updated upstream
       /> 
-=======
-      />
->>>>>>> Stashed changes
     </Tabs>
   );
 };
