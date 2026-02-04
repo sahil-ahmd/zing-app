@@ -1,17 +1,18 @@
-import { Redirect } from 'expo-router';
-import { View, Text } from 'react-native'
+import { useAuth } from "@clerk/clerk-expo";
+import { Href, Redirect, Stack } from "expo-router";
 
 const AuthLayout = () => {
-  const isAuth = true;
-  if (isAuth) {
-    return <Redirect href={"/(tabs)"} />;
+  const { isSignedIn, isLoaded } = useAuth();
+
+  if (!isLoaded) return null;
+
+  if (isSignedIn) {
+    return <Redirect href={"/(tabs)" as Href} />;
   }
 
   return (
-    <View>
-      <Text>AuthLayout</Text>
-    </View>
-  )
-}
+    <Stack screenOptions={{ headerShown: false }} />
+  );
+};
 
-export default AuthLayout
+export default AuthLayout;
