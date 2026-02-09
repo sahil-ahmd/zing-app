@@ -1,13 +1,14 @@
-import { Redirect, Stack, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import "../global.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ClerkProvider, SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useEffect } from "react";
+import AuthSync from "@/components/AuthSync";
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
+function NavigationWrapper() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -18,28 +19,31 @@ export default function RootLayout() {
     const inTabsGroup = segments[0] === "(tabs)";
 
     if (isSignedIn && !inTabsGroup) {
-      // Redirect to tabs if signed in but not there
       router.replace("/(tabs)");
     } else if (!isSignedIn && inTabsGroup) {
-      // Redirect to auth if not signed in but trying to access tabs
       router.replace("/(auth)");
     }
   }, [isSignedIn, isLoaded, segments]);
 
   return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "white" },
+      }}
+    >
+      <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
+      <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
-        <Stack
-          screenOptions={{ 
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: "white"
-            }
-          }}
-        >
-          <Stack.Screen name="(auth)" options={{ animation: "fade" }} />
-          <Stack.Screen name="(tabs)" options={{ animation: "fade" }} />
-        </Stack>
+        <AuthSync />
+        <NavigationWrapper />
       </QueryClientProvider>
     </ClerkProvider>
   );
