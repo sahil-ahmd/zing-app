@@ -7,8 +7,12 @@ import { useEffect } from "react";
 import AuthSync from "@/components/AuthSync";
 import * as Sentry from '@sentry/react-native';
 
+const isProd = !__DEV__;
+const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+
 Sentry.init({
-  dsn: 'https://73b1e939eb41f480c334dbcfef485455@o4507293895950336.ingest.de.sentry.io/4510857351921744',
+  dsn: sentryDsn ?? '',
+  enabled: isProd && !!sentryDsn,
 
   // Adds more context data to events (IP address, cookies, user, etc.)
   // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
