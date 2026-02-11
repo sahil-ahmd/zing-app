@@ -1,5 +1,5 @@
 import { useSSO } from "@clerk/clerk-expo";
-import { createStaticNavigation } from "@react-navigation/native";
+import * as Linking from "expo-linking";
 import { useState } from "react";
 import { Alert } from "react-native";
 
@@ -12,7 +12,11 @@ function useSocialAuth() {
     setLoadingStrategy(strategy);
 
     try {
-      const { createdSessionId, setActive } = await startSSOFlow({ strategy });
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy,
+        redirectUrl: Linking.createURL("/(tabs)"),
+      });
+      
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
       } else {
