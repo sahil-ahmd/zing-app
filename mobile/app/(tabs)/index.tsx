@@ -4,11 +4,11 @@ import Header from "@/components/Header";
 import { useChat } from "@/hooks/useChat";
 import { Chat } from "@/types";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, Text, View } from "react-native";
 
 const ChatsTab = () => {
   const router = useRouter();
-  const { data: chats, isLoading, error } = useChat();
+  const { data: chats, isLoading, error, refetch } = useChat();
 
   if (isLoading) {
     return (
@@ -22,6 +22,9 @@ const ChatsTab = () => {
     return (
       <View className="flex-1 bg-white items-center justify-center">
         <Text className="text-rose-500">Failed to load chats</Text>
+        <Pressable onPress={() => refetch()} className="mt-4 px-4 py-2 bg-[#111] rounded-lg">
+          <Text className="text-black">Retry</Text>
+        </Pressable>
       </View>
     );
   }
