@@ -9,11 +9,24 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import useSocialAuth from "@/hooks/useSocialAuth";
+import { useAuth } from "@clerk/clerk-expo";
 
 const { width, height } = Dimensions.get("window");
 
 const AuthScreen = () => {
   const { handleSocialAuth, loadingStrategy } = useSocialAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  // If already signed in, don't show buttons, just show a loader 
+  // until the NavigationWrapper redirects to (tabs)
+  if (!isLoaded || isSignedIn) {
+    return (
+      <View className="bg-black flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#E2D5FE" />
+      </View>
+    );
+  }
+  
   const isLoading = loadingStrategy !== null;
 
   return (
