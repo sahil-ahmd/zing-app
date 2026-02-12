@@ -131,12 +131,12 @@ const ProfileTab = () => {
 
       {/* Logout Button */}
       <Pressable
-        className="mx-5 mt-8 bg-[#C2DFDA] rounded-full py-4 items-center"
+        className="mx-5 mt-8 bg-black rounded-full py-4 items-center"
         onPress={() => signOut()}
       >
         <View className="flex-row items-center">
-          <Ionicons name="log-out-outline" size={20} color="#000000" />
-          <Text className="ml-2 text-black font-semibold">Log Out</Text>
+          <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
+          <Text className="ml-2 text-white font-semibold">Log Out</Text>
         </View>
       </Pressable>
     </ScrollView>

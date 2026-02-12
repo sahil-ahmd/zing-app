@@ -27,10 +27,15 @@ function useSocialAuth() {
         );
         return;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log("Error in social auth: ", error);
-      const provider = strategy === "oauth_google" ? "Google" : "Apple";
-      Alert.alert("Error", `Failed to sign in with ${provider}. Please try again.`);
+      // Don't alert if the user just cancelled the popup
+      if (error.code !== "auth_cancelled") {
+        const provider = strategy === "oauth_google" ? "Google" : "Apple";
+        Alert.alert("Error", error.message || `Failed to sign in with ${provider}.`);
+      }
+    } finally {
+      setLoadingStrategy(null);
     }
   };
 
