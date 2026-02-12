@@ -7,7 +7,7 @@ const TabsLayout = () => {
 
   if (!isLoaded) return null;
   if (!isSignedIn) return <Redirect href={"/(auth)"} />;
-  
+
   return (
     <Tabs
       tabBar={(props) => <TabBar {...props} />}
@@ -22,12 +22,6 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-        }}
-      />
-      <Tabs.Screen
         name="updates"
         options={{
           title: "Updates",
@@ -38,7 +32,13 @@ const TabsLayout = () => {
         options={{
           title: "Search",
         }}
-      /> 
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+        }}
+      />
     </Tabs>
   );
 };
