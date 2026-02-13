@@ -57,62 +57,86 @@ export const initializeSocket = (httpServer: HttpServer) => {
     socket.join(`user:${userId}`);
 
     socket.on("join-chat", (chatId: string) => {
-        socket.join(`chat:${chatId}`);
+      socket.join(`chat:${chatId}`);
     });
 
     socket.on("leave-chat", (chatId: string) => {
-        socket.leave(`chat:${chatId}`);
+      socket.leave(`chat:${chatId}`);
     });
 
     // handle sending messages
-    socket.on("send-message", async (data: { chatId: string; text: string }) => {
+    socket.on(
+      "send-message",
+      async (data: { chatId: string; text: string }) => {
         try {
-            const { chatId, text } = data;
+          const { chatId, text } = data;
 
-            const chat = await Chat.findOne({
-                _id: chatId,
-                participants: userId
-            });
+          const chat = await Chat.findOne({
+            _id: chatId,
+            participants: userId,
+          });
 
-            if (!chat) {
-                socket.emit("socket-error", { message: "Chat not found" });
-                return;
-            }
+          if (!chat) {
+            socket.emit("socket-error", { message: "Chat not found" });
+            return;
+          }
 
-            const message = await Message.create({
-                chat: chatId,
-                sender: userId,
-                text
-            });
+          const message = await Message.create({
+            chat: chatId,
+            sender: userId,
+            text,
+          });
 
-            chat.lastMessage = message._id;
-            chat.lastMessageAt = new Date();
-            await chat.save();
+          chat.lastMessage = message._id;
+          chat.lastMessageAt = new Date();
+          await chat.save();
 
-            await message.populate("sender", "name avatar");
+          await message.populate("sender", "name avatar");
 
-            // emit to chat room (for users inside the chat)
-            io.to(`chat:${chatId}`).emit("new-message", message);
+          // emit to chat room (for users inside the chat)
+          io.to(`chat:${chatId}`).emit("new-message", message);
 
-            // also emit to participants' personal rooms (for chat list view)
-            for (const participantId of chat.participants) {
-                io.to(`user:${participantId}`).emit("new-message", message);
-            }
-
+          // also emit to participants' personal rooms (for chat list view)
+          for (const participantId of chat.participants) {
+            io.to(`user:${participantId}`).emit("new-message", message);
+          }
         } catch (error) {
-            socket.emit("socket-error", { message: "Failed to send message" });
+          socket.emit("socket-error", { message: "Failed to send message" });
         }
-    });
+      },
+    );
 
     // user is typing event
-    socket.on("typing", async (data) => {});
+    socket.on("typing", async (data: { chatId: string; isTyping: boolean }) => {
+      const typingPayload = {
+        userId,
+        chatId: data.chatId,
+        isTyping: data.isTyping,
+      };
+
+      // emit to chat room (for users inside the chat)
+      socket.to(`chat:${data.chatId}`).emit("typing", typingPayload);
+
+      // also emit to other participants's personal room (for chat list view)
+      try {
+        const chat = await Chat.findById(data.chatId);
+        if (chat) {
+          const otherParticipants = chat.participants.find((p: any) => p.toString() !== userId);
+          if (otherParticipants) {
+            socket.to(`user:${otherParticipants}`).emit("typing", typingPayload);
+          }
+        }
+      } catch (error) {
+        
+      }
+    });
 
     // disconnect (logout)
     socket.on("disconnect", () => {
-        onlineUsers.delete(userId);
+      onlineUsers.delete(userId);
 
-        // notify others that this user is offline
-        socket.broadcast.emit("user-offline", { userId });
+      // notify others that this user is offline
+      socket.broadcast.emit("user-offline", { userId });
     });
   });
   return io;
