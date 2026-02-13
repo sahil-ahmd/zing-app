@@ -34,7 +34,9 @@ export const useCurrentUser = () => {
       const { data } = await apiWithAuth<User>({
         method: "GET",
         url: "/auth/me"
-      })
+      });
+
+      return data;
     }
   });
 };

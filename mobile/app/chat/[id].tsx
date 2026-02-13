@@ -1,4 +1,14 @@
-import { View, Text, ScrollView, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  TextInput,
+} from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -7,6 +17,9 @@ import { useMessages } from "@/hooks/useMessage";
 import { useSocketStore } from "@/lib/socket";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import EmptyUI from "@/components/EmptyUI";
+import { MessageSender } from "@/types";
+import MessageBubble from "@/components/MessageBubble";
 
 type ChatParams = {
   id: string;
@@ -16,7 +29,12 @@ type ChatParams = {
 };
 
 const ChatDetailScreen = () => {
-  const { id: chatId, avatar, name, participantId } = useLocalSearchParams<ChatParams>();
+  const {
+    id: chatId,
+    avatar,
+    name,
+    participantId,
+  } = useLocalSearchParams<ChatParams>();
 
   const [messageText, setMessageText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -122,12 +140,22 @@ const ChatDetailScreen = () => {
           <Ionicons name="arrow-back" size={20} color="#000000" />
         </Pressable>
         <View className="flex-row items-center flex-1 ml-3">
-          {avatar && <Image source={avatar} style={{ width: 40, height: 40, borderRadius: 999 }} />}
+          {avatar && (
+            <Image
+              source={avatar}
+              style={{ width: 40, height: 40, borderRadius: 999 }}
+            />
+          )}
           <View className="ml-3">
-            <Text className="text-black font-semibold text-lg" numberOfLines={1}>
+            <Text
+              className="text-black font-semibold text-lg"
+              numberOfLines={1}
+            >
               {name}
             </Text>
-            <Text className={`text-xs ${!isTyping ? "text-[#2c8c7c]" : "text-neutral-500"}`}>
+            <Text
+              className={`text-xs ${!isTyping ? "text-[#2c8c7c]" : "text-neutral-500"}`}
+            >
               {isTyping ? "typing..." : isOnline ? "Online" : "Offline"}
             </Text>
           </View>
@@ -141,6 +169,91 @@ const ChatDetailScreen = () => {
           </Pressable>
         </View>
       </View>
+
+      {/** Keyboard + Message */}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
+        <View className="flex-1">
+          {isLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color="#8ec9c0" />
+            </View>
+          ) : !messages || messages.length === 0 ? (
+            <View className="flex-1 justify-center">
+              <EmptyUI
+                title="No messages yet"
+                subtitle="Start the conversation!"
+                iconName="chatbubbles-outline"
+                iconColor="#6B6B70"
+                iconSize={64}
+              />
+            </View>
+          ) : (
+            <ScrollView
+              ref={scrollViewRef}
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                gap: 8,
+              }}
+              onContentSizeChange={() => {
+                scrollViewRef.current?.scrollToEnd({ animated: false });
+              }}
+            >
+              {messages.map((message) => {
+                const senderId = (message.sender as MessageSender)._id;
+                const isFromMe = currentUser
+                  ? senderId === currentUser._id
+                  : false;
+
+                return (
+                  <MessageBubble
+                    key={message._id}
+                    message={message}
+                    isFromMe={isFromMe}
+                  />
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {/** Input bar */}
+          <View className="px-3 pb-3 pt-2 bg-black">
+            <View className="flex-row items-center bg-[#C2DFDA] rounded-full px-3 py-1.5 gap-2">
+              <Pressable className="w-10 h-10 rounded-full items-center justify-center bg-black">
+                <Ionicons name="add" size={20} color="#FFFFFF" />
+              </Pressable>
+
+              <TextInput
+                placeholder="Type a message"
+                placeholderTextColor="#000000"
+                className="flex-1 text-black text-base mb-2"
+                multiline
+                style={{ maxHeight: 100 }}
+                value={messageText}
+                onChangeText={handleTyping}
+                onSubmitEditing={handleSend}
+                editable={!isSending}
+              />
+
+              <Pressable
+                className="w-10 h-10 rounded-full items-center justify-center bg-black"
+                onPress={handleSend}
+                disabled={!messageText.trim() || isSending}
+              >
+                {isSending ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Ionicons name="send" size={18} color="#FFFFFF" />
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
