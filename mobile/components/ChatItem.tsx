@@ -17,9 +17,10 @@ const ChatItem = ({ chat, onPress }: ChatItemProps) => {
 
   return (
     <Pressable
-      className="flex-row items-center py-3 active:opacity-70"
+      className="flex-row items-center py-2 active:opacity-70"
       onPress={onPress}
     >
+      <View className="border-2 border-neutral-200 rounded-full p-[0.5px]">
       <View className="relative">
         <Image
           source={{ uri: participant.avatar }}
@@ -31,8 +32,9 @@ const ChatItem = ({ chat, onPress }: ChatItemProps) => {
         />
 
         {isOnline && (
-          <View className="absolute bottom-0 right-0 size-4 bg-green-500 rounded-full border-[3px] border-red-500" />
+          <View className="absolute bottom-0 right-0 size-4 bg-[#C2DFDA] rounded-full border-[3px] border-[#b6eae0]" />
         )}
+      </View>
       </View>
 
       {/** chat info */}
@@ -62,7 +64,7 @@ const ChatItem = ({ chat, onPress }: ChatItemProps) => {
             <Text className="text-sm text-orange-500 italic">typing...</Text>
           ) : (
             <Text
-              className={`text-sm flex-1 mr-3 ${hasUnread ? "text-red-500" : "text-purple-500"}`}
+              className={`text-sm flex-1 mr-3 ${hasUnread ? "text-neutral-500" : "text-[#a3d4cc]"}`}
               numberOfLines={1}
             >
               {chat.lastMessage?.text || "No messages yet"}

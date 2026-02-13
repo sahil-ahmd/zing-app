@@ -6,6 +6,7 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { useEffect } from "react";
 import AuthSync from "@/components/AuthSync";
 import * as Sentry from "@sentry/react-native";
+import SocketConnection from "@/components/SocketConnection";
 
 const isProd = !__DEV__;
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
@@ -96,6 +97,7 @@ export default Sentry.wrap(function RootLayout() {
     <ClerkProvider tokenCache={tokenCache}>
       <QueryClientProvider client={queryClient}>
         <AuthSync />
+        <SocketConnection />
         <NavigationWrapper />
       </QueryClientProvider>
     </ClerkProvider>
