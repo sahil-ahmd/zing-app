@@ -1,10 +1,12 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, Pressable } from "react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useMessages } from "@/hooks/useMessage";
 import { useSocketStore } from "@/lib/socket";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 
 type ChatParams = {
   id: string;
@@ -113,8 +115,32 @@ const ChatDetailScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1">
-      <Text>ChatDetailScreen</Text>
+    <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-3 border-b border-neutral-200">
+        <Pressable onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={20} color="#000000" />
+        </Pressable>
+        <View className="flex-row items-center flex-1 ml-3">
+          {avatar && <Image source={avatar} style={{ width: 40, height: 40, borderRadius: 999 }} />}
+          <View className="ml-3">
+            <Text className="text-black font-semibold text-lg" numberOfLines={1}>
+              {name}
+            </Text>
+            <Text className={`text-xs ${!isTyping ? "text-[#2c8c7c]" : "text-neutral-500"}`}>
+              {isTyping ? "typing..." : isOnline ? "Online" : "Offline"}
+            </Text>
+          </View>
+        </View>
+        <View className="flex-row items-center gap-3">
+          <Pressable className="w-10 h-10 rounded-full items-center justify-center bg-[#C2DFDA]">
+            <Ionicons name="call" size={18} color="#000000" />
+          </Pressable>
+          <Pressable className="w-10 h-10 rounded-full items-center justify-center bg-[#C2DFDA]">
+            <Ionicons name="videocam" size={18} color="#000000" />
+          </Pressable>
+        </View>
+      </View>
     </SafeAreaView>
   );
 };
