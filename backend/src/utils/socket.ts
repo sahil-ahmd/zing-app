@@ -15,28 +15,51 @@ export const initializeSocket = (httpServer: HttpServer) => {
     process.env.FRONTEND_URL, // production
   ].filter(Boolean) as string[];
 
-  const io = new SocketServer(httpServer, { cors: { origin: allowedOrigins } });
+  const io = new SocketServer(httpServer, {
+    cors: {
+      origin: "*", // During debugging, use "*" to rule out CORS as the cause
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    allowEIO3: true,
+    transports: ["websocket", "polling"], // Allow fallback
+    pingTimeout: 60000, // Increase timeout for Render cold-starts
+    pingInterval: 25000,
+  });
 
   // Verify socket connection - if the user is authenticated, we will store the use id in the socket
   io.use(async (socket, next) => {
     const token = socket.handshake.auth.token; // this is what user will send from client
 
-    if (!token) return next(new Error("Authentication error"));
+    if (!token) {
+      console.error("❌ Socket Auth: No token provided");
+      return next(new Error("Authentication error: No token"));
+    }
 
     try {
       const session = await verifyToken(token, {
         secretKey: process.env.CLERK_SECRET_KEY!,
+        // Add leeway to account for Render server clock drift
+        clockSkewInMs: 30000,
       });
 
-      const clerkId = session.sub;
+      // 2. Map Clerk ID to your MongoDB User
+      const user = await User.findOne({ clerkId: session.sub });
 
-      const user = await User.findOne({ clerkId });
-      if (!user) return next(new Error("User not found"));
+      if (!user) {
+        console.error(
+          `❌ Socket Auth: Clerk user ${session.sub} not found in DB`,
+        );
+        return next(new Error("User not found"));
+      }
 
       socket.data.userId = user._id.toString();
+      console.log(`✅ Socket Auth: User ${user.name} connected`);
       next();
     } catch (error: any) {
-      next(new Error(error));
+      console.error("Socket Auth Exception:", error.message);
+      // Don't just pass the error object, pass a string code
+      next(new Error("auth_failed"));
     }
   });
 
@@ -121,14 +144,16 @@ export const initializeSocket = (httpServer: HttpServer) => {
       try {
         const chat = await Chat.findById(data.chatId);
         if (chat) {
-          const otherParticipants = chat.participants.find((p: any) => p.toString() !== userId);
+          const otherParticipants = chat.participants.find(
+            (p: any) => p.toString() !== userId,
+          );
           if (otherParticipants) {
-            socket.to(`user:${otherParticipants}`).emit("typing", typingPayload);
+            socket
+              .to(`user:${otherParticipants}`)
+              .emit("typing", typingPayload);
           }
         }
-      } catch (error) {
-        
-      }
+      } catch (error) {}
     });
 
     // disconnect (logout)

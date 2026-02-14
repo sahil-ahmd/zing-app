@@ -4,22 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 const SocketConnection = () => {
-  const { getToken, isSignedIn } = useAuth();
-  const queryClient = useQueryClient();
-  const connect = useSocketStore((state) => state.connect);
-  const disconnect = useSocketStore((state) => state.disconnect);
-
-  useEffect(() => {
-    if (isSignedIn) {
-      getToken().then((token) => {
-        if (token) connect(token, queryClient);
-      });
-    } else disconnect();
-
-    return () => {
-      disconnect();
-    };
-  }, [isSignedIn, connect, disconnect, getToken, queryClient]);
+    const { getToken, isSignedIn, isLoaded } = useAuth();
+    const { connect, isConnected, socket } = useSocketStore();
+    const queryClient = useQueryClient();
+    
+    useEffect(() => {
+      // Only attempt connection if authenticated and not already connected
+      if (isLoaded && isSignedIn && !isConnected) {
+        // PASS THE FUNCTION 'getToken' ITSELF, do not call it here.
+        connect(getToken, queryClient);
+      }
+    }, [isSignedIn, isLoaded, isConnected]);
 
   return null;
 };

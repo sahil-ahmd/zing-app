@@ -15,7 +15,7 @@ interface SocketState {
   currentChatId: string | null;
   queryClient: QueryClient | null;
 
-  connect: (token: string, queryClient: QueryClient) => void;
+  connect: (getToken: () => Promise<string | null>, queryClient: QueryClient) => Promise<void>;
   disconnect: () => void;
   joinChat: (chatId: string) => void;
   leaveChat: (chatId: string) => void;
@@ -36,13 +36,35 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   currentChatId: null,
   queryClient: null,
 
-  connect: (token, queryClient) => {
+  connect: async (getToken: () => Promise<string | null>, queryClient) => {
+    const token = await getToken(); // Get fresh token right before connecting
+    if (!token) return;
+
     const existingSocket = get().socket;
+    // If it's already connecting or connected, don't start a new one
     if (existingSocket?.connected) return;
 
-    if (existingSocket) existingSocket.disconnect();
+    // 1. Wake up the Render server if it's sleeping
+    try {
+        // This simple GET request forces Render to spin up the container
+        await fetch(`${SOCKET_URL}/health`, { method: 'GET' });
+      } catch (e) {
+        console.log("Server is waking up...");
+      }
 
-    const socket = io(SOCKET_URL, { auth: { token } });
+    // Cleanup any dead instances
+    if (existingSocket) {
+      existingSocket.removeAllListeners();
+      existingSocket.disconnect();
+    }
+
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+    });
 
     socket.on("connect", () => {
       console.log("Socket connected, id:", socket.id);
@@ -78,7 +100,14 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         message: error.message,
       });
     });
+    socket.on("connect_error", (err) => {
+      console.error("Handshake failed:", err.message);
+      set({ isConnected: false });
+    });
     socket.on("new-message", (message: Message) => {
+      const currentQueryClient = get().queryClient; // Get the latest client from state
+      if (!currentQueryClient) return;
+
       const senderId = (message.sender as MessageSender)._id;
       const { currentChatId } = get();
 
@@ -148,6 +177,17 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         });
       },
     );
+    socket.on("reconnect", (attempt) => {
+      console.log("Reconnected on attempt:", attempt);
+      set({ isConnected: true });
+
+      // Re-join the current chat if the user is inside one
+      const { currentChatId } = get();
+      if (currentChatId) socket.emit("join-chat", currentChatId);
+
+      // Refetch chats to get missed messages
+      queryClient?.invalidateQueries({ queryKey: ["chats"] });
+    });
 
     set({ socket, queryClient });
   },
