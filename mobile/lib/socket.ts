@@ -38,6 +38,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
   connect: async (getToken: () => Promise<string | null>, queryClient) => {
     const token = await getToken(); // Get fresh token right before connecting
+    console.log("Token check:", token?.substring(0, 10) + "...");
     if (!token) return;
 
     const existingSocket = get().socket;
@@ -54,16 +55,15 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     // Cleanup any dead instances
     if (existingSocket) {
+      console.log("Cleaning up old socket before new attempt...");
       existingSocket.removeAllListeners();
       existingSocket.disconnect();
     }
 
     const socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
+      transports: ["polling", "websocket"],
+      forceNew: true,
     });
 
     socket.on("connect", () => {
@@ -100,8 +100,13 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         message: error.message,
       });
     });
-    socket.on("connect_error", (err) => {
+    socket.on("connect_error", (err: any) => {
       console.error("Handshake failed:", err.message);
+      // Check for specialized error info
+  console.error("❌ Connection Error Name:", err.name);
+  console.error("❌ Connection Error Message:", err.message);
+  console.error("❌ Connection Error Description:", err.description); // Important!
+  console.error("❌ Connection Error Context:", err.context);
       set({ isConnected: false });
     });
     socket.on("new-message", (message: Message) => {

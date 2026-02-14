@@ -22,9 +22,15 @@ export const initializeSocket = (httpServer: HttpServer) => {
       credentials: true
     },
     allowEIO3: true,
-    transports: ["websocket", "polling"], // Allow fallback
-    pingTimeout: 60000, // Increase timeout for Render cold-starts
-    pingInterval: 25000,
+    transports: ["polling", "websocket"], // Allow fallback
+  });
+
+  // Add a listener to see if the connection is even HITTING the server
+  io.engine.on("connection_error", (err) => {
+    console.log("Server-side Connection Error:", err.req);      // error request object
+    console.log("Error Code:", err.code);     // the error code, for example 1
+    console.log("Error Message:", err.message);  // the error message, for example "Session ID unknown"
+    console.log("Error Context:", err.context);  // some additional error context
   });
 
   // Verify socket connection - if the user is authenticated, we will store the use id in the socket
