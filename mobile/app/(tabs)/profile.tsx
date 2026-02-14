@@ -60,13 +60,13 @@ const ProfileTab = () => {
 
   return (
     <ScrollView
-      className="bg-white"
+      className="bg-white mt-10"
       contentInsetAdjustmentBehavior="automatic"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       {/** Header */}
-      <View className="items-center mt-20">
+      <View className="items-center mt-10">
         <View className="relative">
           <View className="rounded-full border-2 border-neutral-200 p-1">
             <Image

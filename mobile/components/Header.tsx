@@ -13,7 +13,7 @@ const Header = ({ title, iconName, route }: HeaderProps) => {
   const router = useRouter();
 
   return (
-    <View className="flex-row items-center justify-between pb-4 mt-8 bg-white">
+    <View className="flex-row items-center justify-between pb-4 bg-white">
       {title && <Text className="text-3xl font-bold text-black">{title}</Text>}
       <Pressable
         className=""
