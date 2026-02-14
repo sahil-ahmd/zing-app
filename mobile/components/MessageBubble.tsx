@@ -9,8 +9,18 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, isFromMe }: MessageBubbleProps) => {
   return (
-    <View>
-      <Text>MessageBubble</Text>
+    <View className={`flex-row ${isFromMe ? "justify-end" : "justify-start"}`}>
+      <View
+        className={`max-w-[80%] px-4 py-2 rounded-2xl ${
+          isFromMe
+            ? "bg-[#111] rounded-br-sm"
+            : "bg-[#C2DFDA] rounded-bl-sm"
+        }`}
+      >
+        <Text className={`text-sm ${isFromMe ? "text-white" : "text-black"}`}>
+          {message.text}
+        </Text>
+      </View>
     </View>
   )
 }

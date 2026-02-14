@@ -3,6 +3,7 @@ import React from "react";
 import { Chat } from "@/types";
 import { Image } from "expo-image";
 import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
+import { useSocketStore } from "@/lib/socket";
 
 interface ChatItemProps {
   chat: Chat;
@@ -11,9 +12,12 @@ interface ChatItemProps {
 
 const ChatItem = ({ chat, onPress }: ChatItemProps) => {
   const participant = chat.participant;
-  const isOnline = true;
-  const isTyping = false;
-  const hasUnread = false;
+
+  const { onlineUsers, typingUsers, unreadChats } = useSocketStore();
+
+  const isOnline = onlineUsers.has(participant._id);
+  const isTyping = typingUsers.get(chat._id) === participant._id;
+  const hasUnread = unreadChats.has(chat._id);
 
   return (
     <Pressable

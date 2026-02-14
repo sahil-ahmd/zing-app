@@ -1,11 +1,12 @@
+import Header from '@/components/Header'
 import { View, Text } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 const CommunityTab = () => {
   return (
-    <SafeAreaView className='bg-white flex-1'>
-      <Text className='text-black'>Community Tab</Text>
-    </SafeAreaView>
+    <View className="px-5 py-4 mt-10 w-full bg-white flex-1">
+      <Header title="Communities" iconName="people-outline" route="/new-chat" />
+    </View>
   )
 }
 

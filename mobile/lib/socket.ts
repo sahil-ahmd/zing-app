@@ -76,10 +76,12 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       Sentry.logger.info("Socket disconnect", { socketId: socket.id });
       set({ isConnected: false });
     });
-    socket.on("online-users", ({ userIds }: { userIds: string[] }) => {
-      console.log("Received online-users:", userIds);
-      set({ onlineUsers: new Set(userIds) });
-    });
+    socket.on("online-users", (data: { userId: string[] }) => {
+        console.log("Received online-users:", data.userId);
+        if (data.userId) {
+          set({ onlineUsers: new Set(data.userId) });
+        }
+      });
 
     socket.on("user-online", ({ userId }: { userId: string }) => {
       set((state) => ({
