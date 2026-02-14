@@ -106,30 +106,35 @@ const ChatDetailScreen = () => {
     [chatId, isConnected, sendTyping],
   );
 
-  const handleSend = () => {
-    console.log({ isSending, isConnected, currentUser, messageText });
-    if (!messageText.trim() || isSending || !isConnected || !currentUser)
+  const handleSend = async () => {
+    // Guard clause: ensure we have text, we aren't already sending, 
+    // and most importantly, we have a currentUser.
+    if (!messageText.trim() || isSending || !currentUser) return;
+  
+    if (!isConnected) {
+      console.warn("Socket disconnected: Attempting to reconnect...");
       return;
-
-    // stop typing indicator
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
     }
+  
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     sendTyping(chatId, false);
-
-    setIsSending(true);
-    sendMessage(chatId, messageText.trim(), {
-      _id: currentUser._id,
-      name: currentUser.name,
-      email: currentUser.email,
-      avatar: currentUser.avatar,
-    });
-    setMessageText("");
-    setIsSending(false);
-
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+  
+    try {
+      setIsSending(true);
+  
+      sendMessage(chatId, messageText.trim(), {
+        _id: currentUser._id,   // TypeScript now knows this exists
+        name: currentUser.name,
+        email: currentUser.email,
+        avatar: currentUser.avatar || "", // Fallback if avatar is optional
+      });
+  
+      setMessageText("");
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
