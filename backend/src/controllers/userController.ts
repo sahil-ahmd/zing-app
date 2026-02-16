@@ -15,7 +15,7 @@ export async function getUsers(
       return;
     }
 
-    const users = await User.find({ _id: { $ne: currentUserId } })
+    const users = await User.find()  // User.find({ _id: { $ne: currentUserId } })
       .select("name avatar")
       .limit(50);
 
