@@ -74,11 +74,12 @@ export const initializeSocket = (httpServer: HttpServer) => {
   io.on("connection", (socket) => {
     const userId = socket.data.userId;
 
+    // store user in the onlineUsers map
+    onlineUsers.set(userId, socket.id);
+    
     // send list of currently online users to the newly connected client
     socket.emit("online-users", { userId: Array.from(onlineUsers.keys()) });
 
-    // store user in the onlineUsers map
-    onlineUsers.set(userId, socket.id);
 
     // notify others that this current user is online
     socket.broadcast.emit("user-online", { userId });

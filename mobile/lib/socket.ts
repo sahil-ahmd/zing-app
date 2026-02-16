@@ -15,7 +15,10 @@ interface SocketState {
   currentChatId: string | null;
   queryClient: QueryClient | null;
 
-  connect: (getToken: () => Promise<string | null>, queryClient: QueryClient) => Promise<void>;
+  connect: (
+    getToken: () => Promise<string | null>,
+    queryClient: QueryClient,
+  ) => Promise<void>;
   disconnect: () => void;
   joinChat: (chatId: string) => void;
   leaveChat: (chatId: string) => void;
@@ -47,11 +50,11 @@ export const useSocketStore = create<SocketState>((set, get) => ({
 
     // 1. Wake up the Render server if it's sleeping
     try {
-        // This simple GET request forces Render to spin up the container
-        await fetch(`${SOCKET_URL}/health`, { method: 'GET' });
-      } catch (e) {
-        console.log("Server is waking up...");
-      }
+      // This simple GET request forces Render to spin up the container
+      await fetch(`${SOCKET_URL}/health`, { method: "GET" });
+    } catch (e) {
+      console.log("Server is waking up...");
+    }
 
     // Cleanup any dead instances
     if (existingSocket) {
@@ -77,11 +80,11 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       set({ isConnected: false });
     });
     socket.on("online-users", (data: { userId: string[] }) => {
-        console.log("Received online-users:", data.userId);
-        if (data.userId) {
-          set({ onlineUsers: new Set(data.userId) });
-        }
-      });
+      console.log("Received online-users:", data.userId);
+      if (data.userId) {
+        set({ onlineUsers: new Set(data.userId) });
+      }
+    });
 
     socket.on("user-online", ({ userId }: { userId: string }) => {
       set((state) => ({
@@ -105,10 +108,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
     socket.on("connect_error", (err: any) => {
       console.error("Handshake failed:", err.message);
       // Check for specialized error info
-  console.error("❌ Connection Error Name:", err.name);
-  console.error("❌ Connection Error Message:", err.message);
-  console.error("❌ Connection Error Description:", err.description); // Important!
-  console.error("❌ Connection Error Context:", err.context);
+      console.error("❌ Connection Error Name:", err.name);
+      console.error("❌ Connection Error Message:", err.message);
+      console.error("❌ Connection Error Description:", err.description); // Important!
+      console.error("❌ Connection Error Context:", err.context);
       set({ isConnected: false });
     });
     socket.on("new-message", (message: Message) => {
